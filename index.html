@@ -1,0 +1,979 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Basketball Team Generator</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f2ea;
+      --surface: #fffdf8;
+      --surface-strong: #ffffff;
+      --field: #ffffff;
+      --ink: #1c2331;
+      --muted: #687184;
+      --line: #d9dddf;
+      --brand: #c4491d;
+      --brand-dark: #8e2f14;
+      --green: #217a51;
+      --blue: #2369a6;
+      --gold: #d79b22;
+      --danger: #b73434;
+      --shadow: 0 18px 50px rgba(28, 35, 49, 0.13);
+      --radius: 8px;
+    }
+
+    body.dark-mode {
+      color-scheme: dark;
+      --bg: #0e1117;
+      --surface: #171c24;
+      --surface-strong: #202633;
+      --field: #111722;
+      --ink: #eef3f8;
+      --muted: #a8b2c2;
+      --line: #303846;
+      --brand: #e06432;
+      --brand-dark: #f07d4d;
+      --green: #2f9d6c;
+      --blue: #3b8ed8;
+      --gold: #f0b43c;
+      --danger: #d85858;
+      --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        linear-gradient(135deg, rgba(196, 73, 29, 0.08), transparent 34%),
+        linear-gradient(315deg, rgba(35, 105, 166, 0.12), transparent 38%),
+        var(--bg);
+      color: var(--ink);
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      border-radius: 7px;
+      min-height: 40px;
+      padding: 0 14px;
+      color: #fff;
+      background: var(--brand);
+      cursor: pointer;
+      font-weight: 800;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(28, 35, 49, 0.16);
+      background: var(--brand-dark);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 9px 10px;
+      color: var(--ink);
+      background: var(--field);
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 0.83rem;
+      font-weight: 800;
+    }
+
+    .app-shell {
+      width: min(1500px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+      align-items: end;
+      gap: 22px;
+      margin-bottom: 14px;
+      padding: 22px;
+      border: 1px solid rgba(28, 35, 49, 0.1);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(125deg, rgba(28, 35, 49, 0.92), rgba(28, 35, 49, 0.7)),
+        repeating-linear-gradient(90deg, transparent 0 54px, rgba(255, 255, 255, 0.06) 54px 56px),
+        radial-gradient(circle at 84% 18%, rgba(215, 155, 34, 0.55), transparent 24%),
+        #1c2331;
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .hero h1 {
+      margin: 0;
+      max-width: 760px;
+      font-size: clamp(2rem, 4vw, 3.6rem);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 720px;
+      margin: 10px 0 0;
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 1rem;
+    }
+
+    .page-nav {
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 8px;
+      border: 1px solid rgba(28, 35, 49, 0.12);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 248, 0.94);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 24px rgba(28, 35, 49, 0.08);
+    }
+
+    .nav-button {
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid transparent;
+    }
+
+    .nav-button:hover {
+      color: #fff;
+    }
+
+    .nav-button.active {
+      color: #fff;
+      background: var(--ink);
+      box-shadow: none;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .theme-toggle {
+      grid-column: 3;
+      min-height: 38px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      box-shadow: none;
+    }
+
+    .theme-toggle:hover {
+      background: rgba(255, 255, 255, 0.22);
+      box-shadow: none;
+    }
+
+    .metric {
+      min-height: 92px;
+      display: grid;
+      align-content: center;
+      gap: 4px;
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .metric strong {
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+
+    .metric span {
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.74rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.88fr) minmax(0, 1.12fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .players-page-grid {
+      grid-template-columns: minmax(340px, 0.78fr) minmax(320px, 0.62fr);
+    }
+
+    .page-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 14px;
+    }
+
+    .page-heading h2 {
+      margin: 0;
+      font-size: 1.45rem;
+      letter-spacing: 0;
+    }
+
+    .page-heading p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .panel {
+      border: 1px solid rgba(28, 35, 49, 0.12);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: 0 10px 28px rgba(28, 35, 49, 0.08);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface-strong);
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      letter-spacing: 0;
+    }
+
+    .panel-header p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .panel-body {
+      padding: 18px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .form-grid .wide {
+      grid-column: 1 / -1;
+    }
+
+    .capability-select {
+      font-weight: 800;
+      background: linear-gradient(180deg, var(--field), var(--surface));
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .secondary {
+      color: var(--ink);
+      background: #e8ecef;
+    }
+
+    .secondary:hover {
+      background: #dce2e6;
+    }
+
+    .danger {
+      background: var(--danger);
+    }
+
+    .blue {
+      background: var(--blue);
+    }
+
+    .green {
+      background: var(--green);
+    }
+
+    .small-btn {
+      min-height: 34px;
+      padding: 0 10px;
+      font-size: 0.82rem;
+    }
+
+    .roster-tools {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 145px;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .player-list {
+      display: grid;
+      gap: 10px;
+      max-height: 760px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .selection-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .player-card {
+      display: grid;
+      gap: 10px;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--field);
+    }
+
+    .player-card.selected {
+      border-color: rgba(196, 73, 29, 0.72);
+      box-shadow: inset 4px 0 0 var(--brand);
+    }
+
+    .selection-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--field);
+      padding: 12px;
+      cursor: pointer;
+    }
+
+    .selection-card.selected {
+      border-color: rgba(33, 122, 81, 0.75);
+      box-shadow: inset 4px 0 0 var(--green);
+    }
+
+    .player-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .player-name {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .rating-pill {
+      white-space: nowrap;
+      padding: 5px 9px;
+      border-radius: 999px;
+      color: #fff;
+      background: var(--ink);
+      font-size: 0.8rem;
+      font-weight: 900;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      padding: 4px 7px;
+      border-radius: 999px;
+      background: #eff2f4;
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 800;
+    }
+
+    .player-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .generator-bar {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .notice {
+      display: none;
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      border: 1px solid rgba(183, 52, 52, 0.35);
+      border-radius: 7px;
+      color: #7b2020;
+      background: rgba(183, 52, 52, 0.08);
+      font-weight: 800;
+    }
+
+    .notice.visible {
+      display: block;
+    }
+
+    .teams {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .team {
+      min-height: 180px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--field);
+      overflow: hidden;
+    }
+
+    .team h3 {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0;
+      padding: 13px 14px;
+      background: #1c2331;
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    .team:nth-child(2) h3 {
+      background: var(--brand-dark);
+    }
+
+    .team ul {
+      list-style: none;
+      margin: 0;
+      padding: 10px 14px 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .team li {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eef0f1;
+    }
+
+    .team li:last-child {
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    .fairness {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .fairness .metric {
+      min-height: 78px;
+      border-color: var(--line);
+      background: var(--field);
+      color: var(--ink);
+    }
+
+    .fairness .metric span {
+      color: var(--muted);
+    }
+
+    .stats-table-wrap {
+      overflow-x: auto;
+    }
+
+    .leaderboard-controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 190px;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 820px;
+      border-collapse: collapse;
+      background: var(--field);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      padding: 9px;
+      text-align: left;
+      border-bottom: 1px solid #edf0f2;
+      font-size: 0.86rem;
+    }
+
+    th {
+      color: var(--muted);
+      background: var(--surface);
+      font-size: 0.74rem;
+      text-transform: uppercase;
+    }
+
+    td input,
+    td select {
+      min-width: 72px;
+      min-height: 34px;
+      padding: 6px 8px;
+    }
+
+    .rank {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--ink);
+      font-weight: 900;
+    }
+
+    .empty {
+      padding: 22px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      background: color-mix(in srgb, var(--field) 78%, transparent);
+      text-align: center;
+      font-weight: 800;
+    }
+
+    body.dark-mode {
+      background:
+        linear-gradient(135deg, rgba(224, 100, 50, 0.11), transparent 34%),
+        linear-gradient(315deg, rgba(59, 142, 216, 0.14), transparent 38%),
+        var(--bg);
+    }
+
+    body.dark-mode .hero {
+      border-color: rgba(255, 255, 255, 0.12);
+      background:
+        linear-gradient(125deg, rgba(8, 11, 16, 0.92), rgba(18, 24, 34, 0.78)),
+        repeating-linear-gradient(90deg, transparent 0 54px, rgba(255, 255, 255, 0.06) 54px 56px),
+        radial-gradient(circle at 84% 18%, rgba(224, 100, 50, 0.42), transparent 24%),
+        #0b0f15;
+    }
+
+    body.dark-mode .page-nav {
+      background: rgba(23, 28, 36, 0.94);
+      border-color: var(--line);
+    }
+
+    body.dark-mode .nav-button.active,
+    body.dark-mode .team h3,
+    body.dark-mode .rank {
+      background: #0b0f15;
+    }
+
+    body.dark-mode .secondary {
+      color: var(--ink);
+      background: #2b3442;
+    }
+
+    body.dark-mode .secondary:hover {
+      background: #364253;
+    }
+
+    body.dark-mode .tag {
+      color: var(--muted);
+      background: #252d39;
+    }
+
+    body.dark-mode .rating-pill,
+    body.dark-mode .toast {
+      color: #fff;
+      background: #0b0f15;
+    }
+
+    body.dark-mode .team li,
+    body.dark-mode th,
+    body.dark-mode td {
+      border-color: var(--line);
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 5;
+      max-width: min(380px, calc(100vw - 36px));
+      padding: 12px 14px;
+      border-radius: 8px;
+      color: #fff;
+      background: var(--ink);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      font-weight: 800;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1100px) {
+
+      .hero,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app-shell {
+        width: min(100% - 18px, 1500px);
+        padding-top: 9px;
+      }
+
+      .hero {
+        padding: 18px;
+      }
+
+      .hero-stats,
+      .form-grid,
+      .teams,
+      .fairness,
+      .generator-bar,
+      .roster-tools,
+      .page-nav,
+      .leaderboard-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .theme-toggle {
+        grid-column: auto;
+      }
+
+      .panel-header,
+      .player-top,
+      .page-heading {
+        align-items: stretch;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app-shell">
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <h1 id="page-title">Basketball Team Generator</h1>
+        <p>Create player profiles, balance pickup teams, and let ratings evolve from real game stats on this device.</p>
+      </div>
+      <div class="hero-stats" aria-label="Roster summary">
+        <div class="metric">
+          <strong id="summaryPlayers">0</strong>
+          <span>Players</span>
+        </div>
+        <div class="metric">
+          <strong id="summarySelected">0</strong>
+          <span>Selected</span>
+        </div>
+        <div class="metric">
+          <strong id="summaryAverage">0</strong>
+          <span>Avg Rating</span>
+        </div>
+        <button type="button" id="themeToggle" class="theme-toggle" aria-pressed="false">Dark Mode</button>
+      </div>
+    </section>
+
+    <nav class="page-nav" aria-label="App pages">
+      <button type="button" class="nav-button active" data-page-target="players">Players</button>
+      <button type="button" class="nav-button" data-page-target="teams-page">Teams</button>
+      <button type="button" class="nav-button" data-page-target="stats-page">Post-Game Stats</button>
+      <button type="button" class="nav-button" data-page-target="leaderboard-page">Leaderboard</button>
+    </nav>
+
+    <section id="players" class="page active" aria-labelledby="players-title">
+      <div class="page-heading">
+        <div>
+          <h2 id="players-title">Players</h2>
+          <p>Add abilities and manage the available roster.</p>
+        </div>
+        <button type="button" class="secondary" id="loadDemoButton">Load Demo</button>
+      </div>
+      <div class="grid players-page-grid">
+        <section class="panel" aria-labelledby="player-form-title">
+          <div class="panel-header">
+            <div>
+              <h2 id="player-form-title">Player Profile</h2>
+              <p>Choose simple ability tiers. Ratings are saved automatically.</p>
+            </div>
+          </div>
+          <div class="panel-body">
+            <form id="playerForm" autocomplete="off">
+              <input type="hidden" id="playerId">
+              <div class="form-grid">
+                <label class="wide">Name
+                  <input id="name" type="text" maxlength="40" required placeholder="Player name">
+                </label>
+                <label>Height
+                  <input id="height" type="text" maxlength="12" placeholder="6'2&quot;">
+                </label>
+                <label>Weight
+                  <input id="weight" type="number" min="60" max="450" placeholder="180">
+                </label>
+                <label>Size / Build
+                  <select id="size">
+                    <option>Guard</option>
+                    <option>Wing</option>
+                    <option>Forward</option>
+                    <option>Big</option>
+                    <option>Flexible</option>
+                  </select>
+                </label>
+                <label>Overall Rating
+                  <select id="overall" class="capability-select">
+                    <option value="20">Low</option>
+                    <option value="40">Developing</option>
+                    <option value="60" selected>Medium</option>
+                    <option value="80">High</option>
+                    <option value="95">Exceptional</option>
+                  </select>
+                </label>
+                <label>Shooting
+                  <select id="shooting" class="capability-select">
+                    <option value="20">Low</option>
+                    <option value="40">Developing</option>
+                    <option value="60" selected>Medium</option>
+                    <option value="80">High</option>
+                    <option value="95">Exceptional</option>
+                  </select>
+                </label>
+                <label>Defense
+                  <select id="defense" class="capability-select">
+                    <option value="20">Low</option>
+                    <option value="40">Developing</option>
+                    <option value="60" selected>Medium</option>
+                    <option value="80">High</option>
+                    <option value="95">Exceptional</option>
+                  </select>
+                </label>
+                <label>Aggressiveness
+                  <select id="aggressiveness" class="capability-select">
+                    <option value="20">Low</option>
+                    <option value="40">Developing</option>
+                    <option value="60" selected>Medium</option>
+                    <option value="80">High</option>
+                    <option value="95">Exceptional</option>
+                  </select>
+                </label>
+                <label>Ball Handling
+                  <select id="handling" class="capability-select">
+                    <option value="20">Low</option>
+                    <option value="40">Developing</option>
+                    <option value="60" selected>Medium</option>
+                    <option value="80">High</option>
+                    <option value="95">Exceptional</option>
+                  </select>
+                </label>
+                <label>Passing
+                  <select id="passing" class="capability-select">
+                    <option value="20">Low</option>
+                    <option value="40">Developing</option>
+                    <option value="60" selected>Medium</option>
+                    <option value="80">High</option>
+                    <option value="95">Exceptional</option>
+                  </select>
+                </label>
+                <label>Rebounding
+                  <select id="rebounding" class="capability-select">
+                    <option value="20">Low</option>
+                    <option value="40">Developing</option>
+                    <option value="60" selected>Medium</option>
+                    <option value="80">High</option>
+                    <option value="95">Exceptional</option>
+                  </select>
+                </label>
+                <label>Stamina
+                  <select id="stamina" class="capability-select">
+                    <option value="20">Low</option>
+                    <option value="40">Developing</option>
+                    <option value="60" selected>Medium</option>
+                    <option value="80">High</option>
+                    <option value="95">Exceptional</option>
+                  </select>
+                </label>
+                <label>Speed
+                  <select id="speed" class="capability-select">
+                    <option value="20">Low</option>
+                    <option value="40">Developing</option>
+                    <option value="60" selected>Medium</option>
+                    <option value="80">High</option>
+                    <option value="95">Exceptional</option>
+                  </select>
+                </label>
+              </div>
+              <div class="actions">
+                <button type="submit" id="savePlayerButton">Save Player</button>
+                <button type="button" class="secondary" id="resetFormButton">Clear</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="roster-title">
+          <div class="panel-header">
+            <div>
+              <h2 id="roster-title">Available Players</h2>
+              <p>Edit profiles or remove players from the saved roster.</p>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="roster-tools">
+              <input id="search" type="search" placeholder="Search roster">
+              <button type="button" class="danger" id="clearDataButton">Clear Data</button>
+            </div>
+            <div id="playerList" class="player-list"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section id="teams-page" class="page" aria-labelledby="teams-page-title">
+      <div class="page-heading">
+        <div>
+          <h2 id="teams-page-title">Select And Make Teams</h2>
+          <p>Choose who is playing, then generate the fairest randomized split.</p>
+        </div>
+        <button type="button" class="green" id="generateButton">Generate Teams</button>
+      </div>
+      <section class="panel" aria-labelledby="selector-title">
+        <div class="panel-header">
+          <div>
+            <h2 id="selector-title">Game Roster</h2>
+            <p>Tap players to include or exclude them from the next game.</p>
+          </div>
+          <div class="actions" style="margin-top:0;">
+            <button type="button" class="secondary" id="selectAllButton">Select All</button>
+            <button type="button" class="secondary" id="clearSelectionButton">Clear Selected</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div id="selectionList" class="selection-list"></div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="generator-title" style="margin-top:18px;">
+        <div class="panel-header">
+          <div>
+            <h2 id="generator-title">Generated Teams</h2>
+            <p>Teams are balanced by effective rating with a randomized search.</p>
+          </div>
+          <button type="button" class="blue" id="reshuffleButton">Reshuffle</button>
+        </div>
+        <div class="panel-body">
+          <div id="notice" class="notice" role="alert"></div>
+          <div id="fairness" class="fairness"></div>
+          <div id="teams" class="teams"></div>
+        </div>
+      </section>
+    </section>
+
+    <section id="stats-page" class="page" aria-labelledby="stats-title">
+      <div class="page-heading">
+        <div>
+          <h2 id="stats-title">Post-Game Stats</h2>
+          <p>Record one game for the generated matchup and update player ratings.</p>
+        </div>
+        <button type="button" id="saveStatsButton">Save Game Stats</button>
+      </div>
+      <section class="panel">
+        <div class="panel-body">
+          <div id="statsArea"></div>
+        </div>
+      </section>
+    </section>
+
+    <section id="leaderboard-page" class="page" aria-labelledby="leaderboard-title">
+      <div class="page-heading">
+        <div>
+          <h2 id="leaderboard-title">Leaderboard</h2>
+          <p>Compare saved players by rating and accumulated game stats.</p>
+        </div>
+      </div>
+      <section class="panel">
+        <div class="panel-body">
+          <div class="leaderboard-controls">
+            <input id="leaderboardSearch" type="search" placeholder="Search leaderboard">
+            <select id="leaderboardSort" aria-label="Sort leaderboard">
+              <option value="rating">Effective rating</option>
+              <option value="overall">Overall rating</option>
+              <option value="points">Points</option>
+              <option value="rebounds">Rebounds</option>
+              <option value="assists">Assists</option>
+              <option value="wins">Wins</option>
+              <option value="games">Games played</option>
+            </select>
+          </div>
+          <div id="leaderboard"></div>
+        </div>
+      </section>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+
+</html>
