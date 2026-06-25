@@ -4,7 +4,7 @@
   var STORAGE_KEY = "basketballTeamGenerator.players.v1";
   var MATCHUP_KEY = "basketballTeamGenerator.latestMatchup.v1";
   var THEME_KEY = "basketballTeamGenerator.theme.v1";
-  var ATTRIBUTE_FIELDS = ["overall", "shooting", "defense", "aggressiveness", "handling", "passing", "rebounding", "stamina", "speed"];
+  var ATTRIBUTE_FIELDS = ["shooting", "defense", "aggressiveness", "handling", "passing", "rebounding", "stamina", "speed"];
   var FORM_FIELDS = ["name", "height", "weight", "size"].concat(ATTRIBUTE_FIELDS);
   var CAPABILITY_VALUES = [20, 40, 60, 80, 95];
   var state = {
@@ -19,14 +19,14 @@
   };
 
   var demoPlayers = [
-    ["Ari", "5'10\"", 165, "Guard", 79, 86, 62, 71, 84, 76, 43, 81, 82],
-    ["Maya", "6'0\"", 150, "Wing", 82, 78, 83, 77, 74, 80, 69, 85, 79],
-    ["Noah", "6'4\"", 205, "Forward", 76, 65, 84, 80, 61, 68, 86, 73, 64],
-    ["Jalen", "6'2\"", 190, "Wing", 84, 88, 70, 82, 79, 72, 66, 78, 77],
-    ["Sam", "5'9\"", 155, "Guard", 72, 74, 67, 65, 83, 82, 41, 88, 86],
-    ["Chris", "6'6\"", 225, "Big", 80, 58, 88, 75, 52, 59, 92, 68, 57],
-    ["Taylor", "6'1\"", 175, "Flexible", 75, 71, 76, 72, 72, 79, 74, 76, 75],
-    ["Devin", "6'3\"", 198, "Forward", 78, 69, 79, 84, 65, 70, 82, 74, 70]
+    ["Ari", "5'10\"", 165, "Guard", 86, 62, 71, 84, 76, 43, 81, 82],
+    ["Maya", "6'0\"", 150, "Wing", 78, 83, 77, 74, 80, 69, 85, 79],
+    ["Noah", "6'4\"", 205, "Forward", 65, 84, 80, 61, 68, 86, 73, 64],
+    ["Jalen", "6'2\"", 190, "Wing", 88, 70, 82, 79, 72, 66, 78, 77],
+    ["Sam", "5'9\"", 155, "Guard", 74, 67, 65, 83, 82, 41, 88, 86],
+    ["Chris", "6'6\"", 225, "Big", 58, 88, 75, 52, 59, 92, 68, 57],
+    ["Taylor", "6'1\"", 175, "Flexible", 71, 76, 72, 72, 79, 74, 76, 75],
+    ["Devin", "6'3\"", 198, "Forward", 69, 79, 84, 65, 70, 82, 74, 70]
   ];
 
   function $(id) {
@@ -99,8 +99,24 @@
     ATTRIBUTE_FIELDS.forEach(function (field) {
       player[field] = Math.round(clamp(toNumber(raw[field], 50), 1, 100));
     });
+    player.overall = raw.overall == null
+      ? calculateOverall(player)
+      : Math.round(clamp(toNumber(raw.overall, calculateOverall(player)), 1, 100));
 
     return player;
+  }
+
+  function calculateOverall(player) {
+    var rating =
+      player.shooting * 0.16 +
+      player.defense * 0.17 +
+      player.aggressiveness * 0.1 +
+      player.handling * 0.13 +
+      player.passing * 0.12 +
+      player.rebounding * 0.13 +
+      player.stamina * 0.1 +
+      player.speed * 0.09;
+    return Math.round(clamp(rating, 1, 100));
   }
 
   function effectiveScore(player) {
@@ -531,7 +547,6 @@
       var turnovers = clamp(toNumber(stats.turnovers, 0), 0, 80);
       var won = stats.result === "win";
       var ratingDelta = calculateRatingDelta({ points: points, rebounds: rebounds, assists: assists, steals: steals, blocks: blocks, turnovers: turnovers, won: won });
-
       player.stats = Object.assign(baseStats(), player.stats || {});
       player.stats.games += 1;
       player.stats.wins += won ? 1 : 0;
@@ -622,15 +637,14 @@
         height: row[1],
         weight: row[2],
         size: row[3],
-        overall: row[4],
-        shooting: row[5],
-        defense: row[6],
-        aggressiveness: row[7],
-        handling: row[8],
-        passing: row[9],
-        rebounding: row[10],
-        stamina: row[11],
-        speed: row[12]
+        shooting: row[4],
+        defense: row[5],
+        aggressiveness: row[6],
+        handling: row[7],
+        passing: row[8],
+        rebounding: row[9],
+        stamina: row[10],
+        speed: row[11]
       }));
     });
     render();
